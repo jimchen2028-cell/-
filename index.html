@@ -368,7 +368,20 @@
             <span class="field-hint">0 = slowest in the squad · 100 = elite burst & top speed</span>
           </div>
           <input type="range" id="speed" min="0" max="100" value="70" />
-          <div class="range-value">Current: <span id="speedVal">70</span>/100</div>
+          <div class="range-value">
+            Current: <span id="speedVal">70</span>/100
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="sprint50">50m sprint time (seconds)</label>
+            <span class="field-hint">Optional: converts your time into the 0–100 speed score above</span>
+          </div>
+          <input type="number" id="sprint50" min="5.0" max="9.0" step="0.01" placeholder="e.g. 6.30" />
+          <div class="range-value">
+            Benchmarks: 5.70s ≈ elite winger pace · 6.50s ≈ decent academy pace · 7.80s+ = early-stage speed profile.
+          </div>
         </div>
 
         <div class="field-group">
@@ -378,6 +391,30 @@
           </div>
           <input type="range" id="strength" min="0" max="100" value="65" />
           <div class="range-value">Current: <span id="strengthVal">65</span>/100</div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="squat1rm">1RM back squat and bodyweight</label>
+            <span class="field-hint">Optional: converts your strength ratio into the 0–100 strength score above</span>
+          </div>
+          <input type="number" id="squat1rm" min="20" max="300" step="1" placeholder="1RM squat (kg), e.g. 140" />
+          <div style="height: 6px;"></div>
+          <input type="number" id="bodyweight" min="30" max="150" step="0.1" placeholder="Bodyweight (kg), e.g. 75" />
+          <div class="range-value">
+            Benchmarks (1RM ÷ bodyweight): 2.0x+ ≈ elite lower-body strength · 1.5x ≈ strong · 1.0x ≈ average trained.
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="yoyoDistance">Yo-Yo test total distance (m)</label>
+            <span class="field-hint">Optional: converts your distance into the 0–100 stamina score above</span>
+          </div>
+          <input type="number" id="yoyoDistance" min="200" max="3000" step="10" placeholder="e.g. 1600" />
+          <div class="range-value">
+            Benchmarks: 400m ≈ low, 1200–1800m ≈ solid, 2200m+ ≈ elite engine for youth / amateur players.
+          </div>
         </div>
 
         <div class="field-group">
@@ -454,6 +491,10 @@
     const speedInput = document.getElementById('speed');
     const strengthInput = document.getElementById('strength');
     const staminaInput = document.getElementById('stamina');
+    const sprint50Input = document.getElementById('sprint50');
+    const squat1rmInput = document.getElementById('squat1rm');
+    const bodyweightInput = document.getElementById('bodyweight');
+    const yoyoDistanceInput = document.getElementById('yoyoDistance');
 
     const speedVal = document.getElementById('speedVal');
     const strengthVal = document.getElementById('strengthVal');
@@ -509,6 +550,104 @@
     speedInput.addEventListener('input', updateSliderLabels);
     strengthInput.addEventListener('input', updateSliderLabels);
     staminaInput.addEventListener('input', updateSliderLabels);
+
+    // Map 50m time (s) to 0–100 speed score.
+    // Faster times = higher score, using a linear scale between two benchmarks.
+    // Example mapping:
+    // - 5.7 s -> 100 (elite acceleration over 50m)
+    // - 8.0 s -> 0   (very slow over 50m)
+    function speedScoreFrom50m(timeSeconds) {
+      const FAST_BENCHMARK = 5.7;  // elite winger / sprinter-level over 50m
+      const SLOW_BENCHMARK = 8.0;  // slow end for competitive players
+
+      if (isNaN(timeSeconds)) return null;
+
+      // Clamp time into [FAST_BENCHMARK, SLOW_BENCHMARK]
+      const t = Math.max(FAST_BENCHMARK, Math.min(SLOW_BENCHMARK, timeSeconds));
+
+      // Invert: faster (lower) time -> higher score
+      const fraction = (SLOW_BENCHMARK - t) / (SLOW_BENCHMARK - FAST_BENCHMARK);
+      const rawScore = fraction * 100;
+
+      return Math.round(Math.max(0, Math.min(100, rawScore)));
+    }
+
+    // When the user types a 50m time, convert it into the 0–100 speed score
+    // and update the speed slider so it feeds straight into the model.
+    if (sprint50Input) {
+      sprint50Input.addEventListener('input', () => {
+        const val = parseFloat(sprint50Input.value);
+        const converted = speedScoreFrom50m(val);
+        if (converted !== null) {
+          speedInput.value = converted;
+          updateSliderLabels();
+        }
+      });
+    }
+
+    // Map squat 1RM / bodyweight ratio to 0–100 strength score.
+    // Example mapping:
+    // - ratio 0.8x -> 0 (relatively weak for trained players)
+    // - ratio 2.0x -> 100 (elite lower-body strength)
+    function strengthScoreFromSquatRatio(ratio) {
+      const LOW_RATIO = 0.8;
+      const HIGH_RATIO = 2.0;
+
+      if (isNaN(ratio) || ratio <= 0) return null;
+
+      const r = Math.max(LOW_RATIO, Math.min(HIGH_RATIO, ratio));
+      const fraction = (r - LOW_RATIO) / (HIGH_RATIO - LOW_RATIO);
+      const rawScore = fraction * 100;
+
+      return Math.round(Math.max(0, Math.min(100, rawScore)));
+    }
+
+    // When the user enters 1RM squat and bodyweight, convert to strength score.
+    if (squat1rmInput && bodyweightInput) {
+      const handleStrengthInputs = () => {
+        const oneRm = parseFloat(squat1rmInput.value);
+        const bw = parseFloat(bodyweightInput.value);
+        if (!isNaN(oneRm) && !isNaN(bw) && bw > 0) {
+          const ratio = oneRm / bw;
+          const converted = strengthScoreFromSquatRatio(ratio);
+          if (converted !== null) {
+            strengthInput.value = converted;
+            updateSliderLabels();
+          }
+        }
+      };
+      squat1rmInput.addEventListener('input', handleStrengthInputs);
+      bodyweightInput.addEventListener('input', handleStrengthInputs);
+    }
+
+    // Map Yo-Yo test total distance (m) to 0–100 stamina score.
+    // Example mapping (for youth / amateur context):
+    // - 400 m -> 0  (low engine)
+    // - 2200 m -> 100 (elite engine)
+    function staminaScoreFromYoyo(distance) {
+      const LOW_DIST = 400;
+      const HIGH_DIST = 2200;
+
+      if (isNaN(distance) || distance <= 0) return null;
+
+      const d = Math.max(LOW_DIST, Math.min(HIGH_DIST, distance));
+      const fraction = (d - LOW_DIST) / (HIGH_DIST - LOW_DIST);
+      const rawScore = fraction * 100;
+
+      return Math.round(Math.max(0, Math.min(100, rawScore)));
+    }
+
+    // When the user enters a Yo-Yo distance, convert to stamina score.
+    if (yoyoDistanceInput) {
+      yoyoDistanceInput.addEventListener('input', () => {
+        const dist = parseFloat(yoyoDistanceInput.value);
+        const converted = staminaScoreFromYoyo(dist);
+        if (converted !== null) {
+          staminaInput.value = converted;
+          updateSliderLabels();
+        }
+      });
+    }
 
     function computeScore(speed, strength, stamina) {
       const score =
