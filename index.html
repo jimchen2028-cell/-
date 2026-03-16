@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Football Physical Profile Comparator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #e60026; /* Arsenal red vibe */
+      --primary-dark: #b0001d;
+      --bg: #050810;
+      --card-bg: #151822;
+      --text-main: #f5f5f7;
+      --text-muted: #a0a4b8;
+      --accent: #00c896;
+      --border-radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at top, #181b2a 0, #050810 55%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1100px;
+      padding: 24px 16px 40px;
+      margin: 0 auto;
+    }
+
+    .header {
+      margin-bottom: 20px;
+    }
+
+    .title {
+      font-size: clamp(28px, 3vw, 34px);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .title span.accent {
+      color: var(--primary);
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      max-width: 650px;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 840px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(0,0,0,0.6));
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 18px 18px 20px;
+      box-shadow:
+        0 22px 40px rgba(0,0,0,0.65),
+        0 0 0 1px rgba(255,255,255,0.02) inset;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .card-title span.badge {
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: var(--text-muted);
+    }
+
+    .field-group {
+      margin-bottom: 12px;
+    }
+
+    .field-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+
+    .field-label {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .field-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 4px;
+      border-radius: 999px;
+      background: #262938;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 0 4px rgba(230,0,38,0.25);
+      cursor: pointer;
+      border: none;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: none;
+      cursor: pointer;
+    }
+
+    .range-value {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.3);
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+    }
+
+    select:focus, input[type="number"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(230,0,38,0.5);
+    }
+
+    .button-row {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button.primary {
+      border: none;
+      border-radius: 999px;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 10px 25px rgba(230,0,38,0.45);
+    }
+
+    button.secondary {
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(3,7,19,0.6);
+      color: var(--text-muted);
+    }
+
+    .button-row small {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .score-main {
+      font-size: 26px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .score-tagline {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .score-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(0,200,150,0.12);
+      border: 1px solid rgba(0,200,150,0.4);
+      font-size: 11px;
+      margin-top: 8px;
+    }
+
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .result-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 6px;
+    }
+
+    .chip {
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: default;
+    }
+
+    .chip.highlight {
+      border-color: rgba(0,200,150,0.8);
+      color: var(--accent);
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 220px;
+      margin-bottom: 10px;
+    }
+
+    .comparison-select {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .comparison-select select {
+      max-width: 210px;
+      font-size: 12px;
+      padding: 5px 9px;
+    }
+
+    .footnote {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .explain-card {
+      margin-top: 16px;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .explain-bullets {
+      margin-top: 6px;
+      padding-left: 16px;
+    }
+
+    .explain-bullets li {
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <div class="title">
+        Football Physical <span class="accent">Profile Lab</span>
+      </div>
+      <p class="subtitle">
+        Input your speed, strength, and stamina to see your overall physical profile score and compare
+        yourself to pro-style archetypes. Built from live match debates, stats arguments, and the brutal
+        reality of hitting your physical limit on the pitch.
+      </p>
+    </header>
+
+    <main class="layout">
+      <!-- Left: Input -->
+      <section class="card">
+        <div class="card-title">
+          <span>Your profile input</span>
+          <span class="badge">v1 · 3-attribute model</span>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="position">Position (for context)</label>
+            <span class="field-hint">Used for feedback text only in v1</span>
+          </div>
+          <select id="position">
+            <option value="generic">All positions</option>
+            <option value="winger">Winger / Wide Forward</option>
+            <option value="midfielder">Box-to-Box Midfielder</option>
+            <option value="defender">Centre-Back / Full-Back</option>
+            <option value="striker">Striker / Target Man</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="speed">Speed</label>
+            <span class="field-hint">0 = slowest in the squad · 100 = elite burst & top speed</span>
+          </div>
+          <input type="range" id="speed" min="0" max="100" value="70" />
+          <div class="range-value">Current: <span id="speedVal">70</span>/100</div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="strength">Strength</label>
+            <span class="field-hint">Ability to hold off, win duels, dominate contact</span>
+          </div>
+          <input type="range" id="strength" min="0" max="100" value="65" />
+          <div class="range-value">Current: <span id="strengthVal">65</span>/100</div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="stamina">Stamina</label>
+            <span class="field-hint">Engine, repeat sprints, late-game running</span>
+          </div>
+          <input type="range" id="stamina" min="0" max="100" value="75" />
+          <div class="range-value">Current: <span id="staminaVal">75</span>/100</div>
+        </div>
+
+        <div class="button-row">
+          <button class="primary" id="calculateBtn">Calculate my score</button>
+          <button class="secondary" id="resetBtn" type="button">Reset to baseline</button>
+          <small>Drag the sliders, then hit calculate to update charts.</small>
+        </div>
+      </section>
+
+      <!-- Right: Results -->
+      <section class="card">
+        <div class="result-header">
+          <div>
+            <p class="score-main" id="scoreMain">– / 100</p>
+            <p class="score-tagline" id="scoreTagline">
+              Adjust your sliders and calculate to see where you stand.
+            </p>
+            <div class="score-pill" id="scorePill" style="display:none;">
+              <span class="pill-dot"></span>
+              <span id="scoreCategory">Balanced profile</span>
+            </div>
+          </div>
+          <div class="result-meta">
+            <div>Model weights</div>
+            <div class="chips">
+              <span class="chip highlight">Speed · 40%</span>
+              <span class="chip">Strength · 30%</span>
+              <span class="chip">Stamina · 30%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="comparison-select">
+          <span>Compare against:</span>
+          <select id="proSelect">
+            <option value="eliteWinger">Elite Winger archetype</option>
+            <option value="boxToBox">Box-to-Box Mid archetype</option>
+            <option value="targetMan">Target Man archetype</option>
+          </select>
+        </div>
+
+        <div class="chart-wrapper">
+          <canvas id="comparisonChart"></canvas>
+        </div>
+
+        <div class="footnote" id="footnote">
+          This model is intentionally simple and focuses only on three physical attributes.
+          It doesn’t capture technical ability, decision making, or tactical intelligence – all the
+          things that make real pros special.
+        </div>
+
+        <div class="explain-card">
+          <strong>How the score works</strong>
+          <ul class="explain-bullets">
+            <li>Your score is a weighted mix: 40% speed, 30% strength, 30% stamina.</li>
+            <li>Each slider is on a 0–100 scale; you can later tie these to test data (e.g. 30m times, Yo-Yo test levels).</li>
+            <li>The goal isn’t to “prove who’s better” but to give structure to debates and show where your physical profile leans.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const speedInput = document.getElementById('speed');
+    const strengthInput = document.getElementById('strength');
+    const staminaInput = document.getElementById('stamina');
+
+    const speedVal = document.getElementById('speedVal');
+    const strengthVal = document.getElementById('strengthVal');
+    const staminaVal = document.getElementById('staminaVal');
+
+    const positionSelect = document.getElementById('position');
+    const proSelect = document.getElementById('proSelect');
+
+    const scoreMain = document.getElementById('scoreMain');
+    const scoreTagline = document.getElementById('scoreTagline');
+    const scorePill = document.getElementById('scorePill');
+    const scoreCategory = document.getElementById('scoreCategory');
+
+    const calculateBtn = document.getElementById('calculateBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const WEIGHTS = {
+      speed: 0.4,
+      strength: 0.3,
+      stamina: 0.3
+    };
+
+    const PRO_ARCHETYPES = {
+      eliteWinger: {
+        label: 'Elite Winger archetype',
+        position: 'Winger',
+        speed: 95,
+        strength: 70,
+        stamina: 85
+      },
+      boxToBox: {
+        label: 'Box-to-Box Mid archetype',
+        position: 'Midfielder',
+        speed: 80,
+        strength: 80,
+        stamina: 95
+      },
+      targetMan: {
+        label: 'Target Man archetype',
+        position: 'Striker',
+        speed: 70,
+        strength: 95,
+        stamina: 80
+      }
+    };
+
+    function updateSliderLabels() {
+      speedVal.textContent = speedInput.value;
+      strengthVal.textContent = strengthInput.value;
+      staminaVal.textContent = staminaInput.value;
+    }
+
+    speedInput.addEventListener('input', updateSliderLabels);
+    strengthInput.addEventListener('input', updateSliderLabels);
+    staminaInput.addEventListener('input', updateSliderLabels);
+
+    function computeScore(speed, strength, stamina) {
+      const score =
+        speed * WEIGHTS.speed +
+        strength * WEIGHTS.strength +
+        stamina * WEIGHTS.stamina;
+      return Math.round(score);
+    }
+
+    function getCategory(score) {
+      if (score >= 85) return 'Elite physical profile benchmark';
+      if (score >= 70) return 'Strong physical foundation';
+      if (score >= 55) return 'Developing profile – room to grow';
+      return 'Early-stage profile – big upside if you put the work in';
+    }
+
+    function getTagline(score, position) {
+      const posText = {
+        generic: 'player',
+        winger: 'winger or wide forward',
+        midfielder: 'midfielder',
+        defender: 'defender',
+        striker: 'striker'
+      }[position] || 'player';
+
+      if (isNaN(score)) {
+        return 'Adjust your sliders and calculate to see where you stand.';
+      }
+
+      if (score >= 85) {
+        return `For a ${posText}, this is close to pro physical benchmark territory – the challenge is matching it with decision making and technique.`;
+      } else if (score >= 70) {
+        return `You’re physically solid for a ${posText}. The next jump is targeted work on your weakest of the three attributes.`;
+      } else if (score >= 55) {
+        return `You’ve got a base to build from. Improve one attribute at a time with consistent training and game minutes.`;
+      }
+      return `Right now your profile is raw. That’s fine – the important part is using this as a baseline and tracking your progress over months and seasons.`;
+    }
+
+    // Chart.js setup
+    const ctx = document.getElementById('comparisonChart').getContext('2d');
+
+    let comparisonChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ['Speed', 'Strength', 'Stamina'],
+        datasets: [
+          {
+            label: 'You',
+            data: [70, 65, 75],
+            borderColor: 'rgba(0,200,150,1)',
+            backgroundColor: 'rgba(0,200,150,0.2)',
+            borderWidth: 2,
+            pointRadius: 3
+          },
+          {
+            label: PRO_ARCHETYPES[proSelect.value].label,
+            data: [
+              PRO_ARCHETYPES[proSelect.value].speed,
+              PRO_ARCHETYPES[proSelect.value].strength,
+              PRO_ARCHETYPES[proSelect.value].stamina
+            ],
+            borderColor: 'rgba(230,0,38,0.9)',
+            backgroundColor: 'rgba(230,0,38,0.15)',
+            borderWidth: 2,
+            pointRadius: 3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: '#e5e7f4',
+              font: { size: 11 }
+            }
+          }
+        },
+        scales: {
+          r: {
+            angleLines: { color: 'rgba(148,163,184,0.3)' },
+            grid: { color: 'rgba(148,163,184,0.25)' },
+            suggestedMin: 0,
+            suggestedMax: 100,
+            ticks: {
+              showLabelBackdrop: false,
+              color: '#9ca3c7',
+              font: { size: 9 },
+              stepSize: 20
+            },
+            pointLabels: {
+              color: '#e5e7f4',
+              font: { size: 11 }
+            }
+          }
+        }
+      }
+    });
+
+    function updateChart(userValues) {
+      const pro = PRO_ARCHETYPES[proSelect.value];
+
+      comparisonChart.data.datasets[0].data = userValues;
+      comparisonChart.data.datasets[1].data = [
+        pro.speed,
+        pro.strength,
+        pro.stamina
+      ];
+      comparisonChart.data.datasets[1].label = pro.label;
+
+      comparisonChart.update();
+    }
+
+    function calculateAndRender() {
+      const speed = Number(speedInput.value);
+      const strength = Number(strengthInput.value);
+      const stamina = Number(staminaInput.value);
+      const position = positionSelect.value;
+
+      const score = computeScore(speed, strength, stamina);
+
+      scoreMain.textContent = isNaN(score) ? '– / 100' : `${score} / 100`;
+      scoreCategory.textContent = getCategory(score);
+      scoreTagline.textContent = getTagline(score, position);
+      scorePill.style.display = isNaN(score) ? 'none' : 'inline-flex';
+
+      updateChart([speed, strength, stamina]);
+    }
+
+    calculateBtn.addEventListener('click', calculateAndRender);
+
+    resetBtn.addEventListener('click', () => {
+      speedInput.value = 70;
+      strengthInput.value = 65;
+      staminaInput.value = 75;
+      positionSelect.value = 'generic';
+      updateSliderLabels();
+      calculateAndRender();
+    });
+
+    proSelect.addEventListener('change', () => {
+      const speed = Number(speedInput.value);
+      const strength = Number(strengthInput.value);
+      const stamina = Number(staminaInput.value);
+      updateChart([speed, strength, stamina]);
+    });
+
+    // Initialize
+    updateSliderLabels();
+    calculateAndRender();
+  </script>
+</body>
+</html>
