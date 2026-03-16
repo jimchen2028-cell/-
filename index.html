@@ -110,6 +110,92 @@
       margin-bottom: 12px;
     }
 
+    .grid-2 {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 520px) {
+      .grid-2 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 14px 0;
+    }
+
+    .callout {
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.25);
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .warning {
+      border-color: rgba(255,170,0,0.35);
+      background: rgba(255,170,0,0.08);
+      color: #ffd18a;
+    }
+
+    .success {
+      border-color: rgba(0,200,150,0.35);
+      background: rgba(0,200,150,0.08);
+      color: #a6ffe7;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .row > * {
+      flex: 1 1 180px;
+    }
+
+    .mini {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .table th, .table td {
+      padding: 8px 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      text-align: left;
+      color: var(--text-main);
+    }
+
+    .table th {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    .pill-button {
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(3,7,19,0.6);
+      color: var(--text-main);
+    }
+
     .field-label-row {
       display: flex;
       justify-content: space-between;
@@ -130,6 +216,7 @@
     input[type="range"] {
       width: 100%;
       -webkit-appearance: none;
+      appearance: none;
       height: 4px;
       border-radius: 999px;
       background: #262938;
@@ -344,14 +431,25 @@
       <!-- Left: Input -->
       <section class="card">
         <div class="card-title">
-          <span>Your profile input</span>
-          <span class="badge">v1 · 3-attribute model</span>
+          <span>Inputs & presets</span>
+          <span class="badge">v2 · tests + compare + save</span>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="mode">Mode</label>
+            <span class="field-hint">Compare yourself vs a pro archetype or another player</span>
+          </div>
+          <select id="mode">
+            <option value="pro">You vs Pro archetype</option>
+            <option value="player">Player A vs Player B</option>
+          </select>
         </div>
 
         <div class="field-group">
           <div class="field-label-row">
             <label class="field-label" for="position">Position (for context)</label>
-            <span class="field-hint">Used for feedback text only in v1</span>
+            <span class="field-hint">Applies position-based weights in v2</span>
           </div>
           <select id="position">
             <option value="generic">All positions</option>
@@ -360,6 +458,27 @@
             <option value="defender">Centre-Back / Full-Back</option>
             <option value="striker">Striker / Target Man</option>
           </select>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="level">Benchmark context</label>
+            <span class="field-hint">Adjusts test → score conversions</span>
+          </div>
+          <div class="grid-2">
+            <select id="level">
+              <option value="youth">Youth / School</option>
+              <option value="amateur" selected>Amateur / Sunday league</option>
+              <option value="academy">Academy / Semi-pro</option>
+              <option value="pro">Pro</option>
+            </select>
+            <select id="sex">
+              <option value="any" selected>Any</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+          <div class="mini">If you’re not sure, keep “Amateur” and “Any”.</div>
         </div>
 
         <div class="field-group">
@@ -375,12 +494,20 @@
 
         <div class="field-group">
           <div class="field-label-row">
-            <label class="field-label" for="sprint50">50m sprint time (seconds)</label>
-            <span class="field-hint">Optional: converts your time into the 0–100 speed score above</span>
+            <label class="field-label" for="sprintDistance">Sprint test (optional)</label>
+            <span class="field-hint">Enter a sprint time → converts into the speed score above</span>
           </div>
-          <input type="number" id="sprint50" min="5.0" max="9.0" step="0.01" placeholder="e.g. 6.30" />
+          <div class="grid-2">
+            <select id="sprintDistance">
+              <option value="10">10m time (s)</option>
+              <option value="20">20m time (s)</option>
+              <option value="30">30m time (s)</option>
+              <option value="50" selected>50m time (s)</option>
+            </select>
+            <input type="number" id="sprintTime" min="1.0" max="12.0" step="0.01" placeholder="e.g. 6.30" />
+          </div>
           <div class="range-value">
-            Benchmarks: 5.70s ≈ elite winger pace · 6.50s ≈ decent academy pace · 7.80s+ = early-stage speed profile.
+            Tip: pick the distance you actually tested (10/20/30/50m).
           </div>
         </div>
 
@@ -426,11 +553,32 @@
           <div class="range-value">Current: <span id="staminaVal">75</span>/100</div>
         </div>
 
+        <div class="divider"></div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label" for="profileName">Save / load profiles</label>
+            <span class="field-hint">Local to this browser (no account needed)</span>
+          </div>
+          <div class="grid-2">
+            <input type="text" id="profileName" placeholder="Profile name (e.g. Chris, Mate A)" />
+            <button class="pill-button" id="saveProfileBtn" type="button">Save Profile</button>
+          </div>
+          <div style="height: 6px;"></div>
+          <div class="grid-2">
+            <select id="savedProfiles"></select>
+            <button class="pill-button" id="loadProfileBtn" type="button">Load into Player B</button>
+          </div>
+          <div class="mini">Use “Player A vs Player B” mode to compare saved profiles.</div>
+        </div>
+
         <div class="button-row">
           <button class="primary" id="calculateBtn">Calculate my score</button>
           <button class="secondary" id="resetBtn" type="button">Reset to baseline</button>
           <small>Drag the sliders, then hit calculate to update charts.</small>
         </div>
+
+        <div id="validationBox" class="callout warning" style="display:none; margin-top: 12px;"></div>
       </section>
 
       <!-- Right: Results -->
@@ -449,24 +597,80 @@
           <div class="result-meta">
             <div>Model weights</div>
             <div class="chips">
-              <span class="chip highlight">Speed · 40%</span>
-              <span class="chip">Strength · 30%</span>
-              <span class="chip">Stamina · 30%</span>
+              <span class="chip highlight" id="wSpeed">Speed · 40%</span>
+              <span class="chip" id="wStrength">Strength · 30%</span>
+              <span class="chip" id="wStamina">Stamina · 30%</span>
             </div>
           </div>
         </div>
 
         <div class="comparison-select">
-          <span>Compare against:</span>
+          <span id="compareLabel">Compare against:</span>
           <select id="proSelect">
             <option value="eliteWinger">Elite Winger archetype</option>
             <option value="boxToBox">Box-to-Box Mid archetype</option>
             <option value="targetMan">Target Man archetype</option>
           </select>
+          <select id="playerBSource" style="display:none;">
+            <option value="custom" selected>Player B (custom inputs)</option>
+            <option value="saved">Player B (saved profile)</option>
+          </select>
+        </div>
+
+        <div id="playerBPanel" class="callout" style="display:none; margin-bottom: 10px;">
+          <strong style="color: var(--text-main); font-size: 12px;">Player B inputs (0–100)</strong>
+          <div class="mini">If you don’t load a saved profile, use these sliders.</div>
+          <div style="height: 8px;"></div>
+          <div class="grid-2">
+            <div>
+              <div class="mini">Speed</div>
+              <input type="range" id="speedB" min="0" max="100" value="70" />
+              <div class="mini">Value: <span id="speedBVal">70</span></div>
+            </div>
+            <div>
+              <div class="mini">Strength</div>
+              <input type="range" id="strengthB" min="0" max="100" value="65" />
+              <div class="mini">Value: <span id="strengthBVal">65</span></div>
+            </div>
+          </div>
+          <div style="height: 8px;"></div>
+          <div>
+            <div class="mini">Stamina</div>
+            <input type="range" id="staminaB" min="0" max="100" value="75" />
+            <div class="mini">Value: <span id="staminaBVal">75</span></div>
+          </div>
         </div>
 
         <div class="chart-wrapper">
           <canvas id="comparisonChart"></canvas>
+        </div>
+
+        <div class="chart-wrapper" style="height: 170px;">
+          <canvas id="differenceChart"></canvas>
+        </div>
+
+        <div class="row">
+          <button class="pill-button" id="downloadCardBtn" type="button">Download result card</button>
+          <div class="mini" id="downloadHint">Creates an image you can share (saved by your browser).</div>
+        </div>
+
+        <table class="table" id="compareTable">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>You / Player A</th>
+              <th>Opponent</th>
+              <th>Δ (A − B)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <div class="callout success" id="recommendations" style="display:none; margin-top: 10px;"></div>
+
+        <div class="callout" id="transparency" style="margin-top: 10px;">
+          <strong style="color: var(--text-main); font-size: 12px;">Transparency</strong>
+          <div class="mini" id="transparencyText">Weights, conversions, and calculation details will appear after you calculate.</div>
         </div>
 
         <div class="footnote" id="footnote">
@@ -488,13 +692,19 @@
   </div>
 
   <script>
+    const modeSelect = document.getElementById('mode');
     const speedInput = document.getElementById('speed');
     const strengthInput = document.getElementById('strength');
     const staminaInput = document.getElementById('stamina');
-    const sprint50Input = document.getElementById('sprint50');
+
+    const sprintDistanceSelect = document.getElementById('sprintDistance');
+    const sprintTimeInput = document.getElementById('sprintTime');
     const squat1rmInput = document.getElementById('squat1rm');
     const bodyweightInput = document.getElementById('bodyweight');
     const yoyoDistanceInput = document.getElementById('yoyoDistance');
+
+    const levelSelect = document.getElementById('level');
+    const sexSelect = document.getElementById('sex');
 
     const speedVal = document.getElementById('speedVal');
     const strengthVal = document.getElementById('strengthVal');
@@ -502,6 +712,7 @@
 
     const positionSelect = document.getElementById('position');
     const proSelect = document.getElementById('proSelect');
+    const playerBSourceSelect = document.getElementById('playerBSource');
 
     const scoreMain = document.getElementById('scoreMain');
     const scoreTagline = document.getElementById('scoreTagline');
@@ -511,10 +722,39 @@
     const calculateBtn = document.getElementById('calculateBtn');
     const resetBtn = document.getElementById('resetBtn');
 
-    const WEIGHTS = {
-      speed: 0.4,
-      strength: 0.3,
-      stamina: 0.3
+    const wSpeed = document.getElementById('wSpeed');
+    const wStrength = document.getElementById('wStrength');
+    const wStamina = document.getElementById('wStamina');
+
+    const validationBox = document.getElementById('validationBox');
+
+    const compareLabel = document.getElementById('compareLabel');
+    const playerBPanel = document.getElementById('playerBPanel');
+    const speedB = document.getElementById('speedB');
+    const strengthB = document.getElementById('strengthB');
+    const staminaB = document.getElementById('staminaB');
+    const speedBVal = document.getElementById('speedBVal');
+    const strengthBVal = document.getElementById('strengthBVal');
+    const staminaBVal = document.getElementById('staminaBVal');
+
+    const compareTable = document.getElementById('compareTable');
+    const recommendationsBox = document.getElementById('recommendations');
+    const transparencyBox = document.getElementById('transparencyText');
+    const downloadCardBtn = document.getElementById('downloadCardBtn');
+
+    const profileNameInput = document.getElementById('profileName');
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+    const savedProfilesSelect = document.getElementById('savedProfiles');
+    const loadProfileBtn = document.getElementById('loadProfileBtn');
+
+    const DEFAULT_WEIGHTS = { speed: 0.4, strength: 0.3, stamina: 0.3 };
+
+    const POSITION_WEIGHTS = {
+      generic: { speed: 0.4, strength: 0.3, stamina: 0.3 },
+      winger: { speed: 0.5, strength: 0.2, stamina: 0.3 },
+      midfielder: { speed: 0.35, strength: 0.25, stamina: 0.4 },
+      defender: { speed: 0.25, strength: 0.5, stamina: 0.25 },
+      striker: { speed: 0.35, strength: 0.45, stamina: 0.2 }
     };
 
     const PRO_ARCHETYPES = {
@@ -551,19 +791,117 @@
     strengthInput.addEventListener('input', updateSliderLabels);
     staminaInput.addEventListener('input', updateSliderLabels);
 
-    // Map 50m time (s) to 0–100 speed score.
-    // Faster times = higher score, using a linear scale between two benchmarks.
-    // Example mapping:
-    // - 5.7 s -> 100 (elite acceleration over 50m)
-    // - 8.0 s -> 0   (very slow over 50m)
-    function speedScoreFrom50m(timeSeconds) {
-      const FAST_BENCHMARK = 5.7;  // elite winger / sprinter-level over 50m
-      const SLOW_BENCHMARK = 8.0;  // slow end for competitive players
+    function updatePlayerBLabels() {
+      if (!speedBVal) return;
+      speedBVal.textContent = speedB.value;
+      strengthBVal.textContent = strengthB.value;
+      staminaBVal.textContent = staminaB.value;
+    }
+    if (speedB) speedB.addEventListener('input', updatePlayerBLabels);
+    if (strengthB) strengthB.addEventListener('input', updatePlayerBLabels);
+    if (staminaB) staminaB.addEventListener('input', updatePlayerBLabels);
 
+    function getActiveWeights() {
+      const pos = positionSelect?.value || 'generic';
+      return POSITION_WEIGHTS[pos] || DEFAULT_WEIGHTS;
+    }
+
+    function renderWeights(weights) {
+      const pct = (n) => `${Math.round(n * 100)}%`;
+      if (wSpeed) wSpeed.textContent = `Speed · ${pct(weights.speed)}`;
+      if (wStrength) wStrength.textContent = `Strength · ${pct(weights.strength)}`;
+      if (wStamina) wStamina.textContent = `Stamina · ${pct(weights.stamina)}`;
+    }
+
+    function setValidation(messages) {
+      if (!validationBox) return;
+      if (!messages.length) {
+        validationBox.style.display = 'none';
+        validationBox.innerHTML = '';
+        return;
+      }
+      validationBox.style.display = 'block';
+      validationBox.innerHTML = `<strong style="color: var(--text-main);">Check these inputs:</strong><ul style="margin: 6px 0 0; padding-left: 18px;">${messages.map(m => `<li>${m}</li>`).join('')}</ul>`;
+    }
+
+    function validateInputs() {
+      const msgs = [];
+
+      // Sprint plausibility checks (very rough)
+      const dist = Number(sprintDistanceSelect?.value || 50);
+      const t = parseFloat(sprintTimeInput?.value);
+      if (!isNaN(t)) {
+        if (dist === 10 && (t < 1.3 || t > 3.5)) msgs.push('10m time looks unusual. Typical range is roughly 1.6s–2.2s.');
+        if (dist === 20 && (t < 2.5 || t > 5.0)) msgs.push('20m time looks unusual. Typical range is roughly 3.0s–4.2s.');
+        if (dist === 30 && (t < 3.5 || t > 7.0)) msgs.push('30m time looks unusual. Typical range is roughly 3.9s–5.2s.');
+        if (dist === 50 && (t < 5.0 || t > 10.0)) msgs.push('50m time looks unusual. Typical range is roughly 5.7s–8.5s.');
+      }
+
+      const oneRm = parseFloat(squat1rmInput?.value);
+      const bw = parseFloat(bodyweightInput?.value);
+      if (!isNaN(oneRm) && !isNaN(bw) && bw > 0) {
+        const ratio = oneRm / bw;
+        if (ratio < 0.5 || ratio > 3.0) msgs.push('Squat ratio looks unusual (1RM ÷ bodyweight). Double-check units (kg) and numbers.');
+      }
+
+      const yoyo = parseFloat(yoyoDistanceInput?.value);
+      if (!isNaN(yoyo) && (yoyo < 200 || yoyo > 3200)) msgs.push('Yo-Yo distance looks unusual. Check the total distance (meters).');
+
+      setValidation(msgs);
+    }
+
+    if (sprintTimeInput) sprintTimeInput.addEventListener('input', validateInputs);
+    if (sprintDistanceSelect) sprintDistanceSelect.addEventListener('change', validateInputs);
+    if (squat1rmInput) squat1rmInput.addEventListener('input', validateInputs);
+    if (bodyweightInput) bodyweightInput.addEventListener('input', validateInputs);
+    if (yoyoDistanceInput) yoyoDistanceInput.addEventListener('input', validateInputs);
+
+    // Test conversion helpers (benchmarks vary by context).
+    function clamp(n, min, max) {
+      return Math.max(min, Math.min(max, n));
+    }
+
+    function getContext() {
+      return {
+        level: levelSelect?.value || 'amateur',
+        sex: sexSelect?.value || 'any'
+      };
+    }
+
+    function getSprintBenchmarks(distanceMeters, ctx) {
+      // Benchmarks are rough and intentionally conservative.
+      // Values are [FAST, SLOW] in seconds.
+      const base = {
+        10: [1.75, 2.45],
+        20: [3.05, 4.35],
+        30: [4.10, 5.90],
+        50: [5.70, 8.60]
+      };
+
+      const levelAdj = {
+        youth: 0.22,
+        amateur: 0.0,
+        academy: -0.18,
+        pro: -0.35
+      }[ctx.level] ?? 0.0;
+
+      // Very small sex adjustment (mostly reflects typical distributions, not capability).
+      const sexAdj = {
+        any: 0.0,
+        male: -0.05,
+        female: 0.10
+      }[ctx.sex] ?? 0.0;
+
+      const [fast, slow] = base[distanceMeters] || base[50];
+      return [fast + levelAdj + sexAdj, slow + levelAdj + sexAdj];
+    }
+
+    function speedScoreFromSprint(timeSeconds, distanceMeters, ctx) {
       if (isNaN(timeSeconds)) return null;
+      const [FAST_BENCHMARK, SLOW_BENCHMARK] = getSprintBenchmarks(distanceMeters, ctx);
 
       // Clamp time into [FAST_BENCHMARK, SLOW_BENCHMARK]
-      const t = Math.max(FAST_BENCHMARK, Math.min(SLOW_BENCHMARK, timeSeconds));
+      const t = clamp(timeSeconds, FAST_BENCHMARK, SLOW_BENCHMARK);
 
       // Invert: faster (lower) time -> higher score
       const fraction = (SLOW_BENCHMARK - t) / (SLOW_BENCHMARK - FAST_BENCHMARK);
@@ -572,26 +910,47 @@
       return Math.round(Math.max(0, Math.min(100, rawScore)));
     }
 
-    // When the user types a 50m time, convert it into the 0–100 speed score
-    // and update the speed slider so it feeds straight into the model.
-    if (sprint50Input) {
-      sprint50Input.addEventListener('input', () => {
-        const val = parseFloat(sprint50Input.value);
-        const converted = speedScoreFrom50m(val);
-        if (converted !== null) {
-          speedInput.value = converted;
-          updateSliderLabels();
-        }
-      });
+    // When the user enters a sprint time, convert to speed score.
+    function handleSprintConversion() {
+      const ctx = getContext();
+      const dist = Number(sprintDistanceSelect?.value || 50);
+      const t = parseFloat(sprintTimeInput?.value);
+      const converted = speedScoreFromSprint(t, dist, ctx);
+      if (converted !== null) {
+        speedInput.value = converted;
+        updateSliderLabels();
+      }
     }
+    if (sprintTimeInput) sprintTimeInput.addEventListener('input', handleSprintConversion);
+    if (sprintDistanceSelect) sprintDistanceSelect.addEventListener('change', handleSprintConversion);
+    if (levelSelect) levelSelect.addEventListener('change', () => { handleSprintConversion(); handleStaminaConversion(); handleStrengthConversion(); });
+    if (sexSelect) sexSelect.addEventListener('change', () => { handleSprintConversion(); handleStaminaConversion(); handleStrengthConversion(); });
 
     // Map squat 1RM / bodyweight ratio to 0–100 strength score.
     // Example mapping:
     // - ratio 0.8x -> 0 (relatively weak for trained players)
     // - ratio 2.0x -> 100 (elite lower-body strength)
     function strengthScoreFromSquatRatio(ratio) {
-      const LOW_RATIO = 0.8;
-      const HIGH_RATIO = 2.0;
+      // Adjust for context very lightly. (Better: separate benchmarks by sex/level later.)
+      const ctx = getContext();
+      const lowBase = 0.8;
+      const highBase = 2.0;
+
+      const levelAdj = {
+        youth: -0.05,
+        amateur: 0.0,
+        academy: 0.05,
+        pro: 0.12
+      }[ctx.level] ?? 0.0;
+
+      const sexAdj = {
+        any: 0.0,
+        male: 0.05,
+        female: -0.05
+      }[ctx.sex] ?? 0.0;
+
+      const LOW_RATIO = lowBase + levelAdj + sexAdj;
+      const HIGH_RATIO = highBase + levelAdj + sexAdj;
 
       if (isNaN(ratio) || ratio <= 0) return null;
 
@@ -603,30 +962,44 @@
     }
 
     // When the user enters 1RM squat and bodyweight, convert to strength score.
-    if (squat1rmInput && bodyweightInput) {
-      const handleStrengthInputs = () => {
-        const oneRm = parseFloat(squat1rmInput.value);
-        const bw = parseFloat(bodyweightInput.value);
-        if (!isNaN(oneRm) && !isNaN(bw) && bw > 0) {
-          const ratio = oneRm / bw;
-          const converted = strengthScoreFromSquatRatio(ratio);
-          if (converted !== null) {
-            strengthInput.value = converted;
-            updateSliderLabels();
-          }
+    function handleStrengthConversion() {
+      const oneRm = parseFloat(squat1rmInput?.value);
+      const bw = parseFloat(bodyweightInput?.value);
+      if (!isNaN(oneRm) && !isNaN(bw) && bw > 0) {
+        const ratio = oneRm / bw;
+        const converted = strengthScoreFromSquatRatio(ratio);
+        if (converted !== null) {
+          strengthInput.value = converted;
+          updateSliderLabels();
         }
-      };
-      squat1rmInput.addEventListener('input', handleStrengthInputs);
-      bodyweightInput.addEventListener('input', handleStrengthInputs);
+      }
     }
+    if (squat1rmInput) squat1rmInput.addEventListener('input', handleStrengthConversion);
+    if (bodyweightInput) bodyweightInput.addEventListener('input', handleStrengthConversion);
 
     // Map Yo-Yo test total distance (m) to 0–100 stamina score.
     // Example mapping (for youth / amateur context):
     // - 400 m -> 0  (low engine)
     // - 2200 m -> 100 (elite engine)
     function staminaScoreFromYoyo(distance) {
-      const LOW_DIST = 400;
-      const HIGH_DIST = 2200;
+      const ctx = getContext();
+
+      const base = { low: 400, high: 2200 };
+      const levelAdj = {
+        youth: { low: -150, high: -200 },
+        amateur: { low: 0, high: 0 },
+        academy: { low: 150, high: 250 },
+        pro: { low: 300, high: 600 }
+      }[ctx.level] ?? { low: 0, high: 0 };
+
+      const sexAdj = {
+        any: { low: 0, high: 0 },
+        male: { low: 50, high: 80 },
+        female: { low: -50, high: -80 }
+      }[ctx.sex] ?? { low: 0, high: 0 };
+
+      const LOW_DIST = base.low + levelAdj.low + sexAdj.low;
+      const HIGH_DIST = base.high + levelAdj.high + sexAdj.high;
 
       if (isNaN(distance) || distance <= 0) return null;
 
@@ -637,25 +1010,132 @@
       return Math.round(Math.max(0, Math.min(100, rawScore)));
     }
 
-    // When the user enters a Yo-Yo distance, convert to stamina score.
-    if (yoyoDistanceInput) {
-      yoyoDistanceInput.addEventListener('input', () => {
-        const dist = parseFloat(yoyoDistanceInput.value);
-        const converted = staminaScoreFromYoyo(dist);
-        if (converted !== null) {
-          staminaInput.value = converted;
-          updateSliderLabels();
-        }
-      });
+    function handleStaminaConversion() {
+      const dist = parseFloat(yoyoDistanceInput?.value);
+      const converted = staminaScoreFromYoyo(dist);
+      if (converted !== null) {
+        staminaInput.value = converted;
+        updateSliderLabels();
+      }
     }
+    if (yoyoDistanceInput) yoyoDistanceInput.addEventListener('input', handleStaminaConversion);
 
-    function computeScore(speed, strength, stamina) {
+    function computeScore(speed, strength, stamina, weights) {
       const score =
-        speed * WEIGHTS.speed +
-        strength * WEIGHTS.strength +
-        stamina * WEIGHTS.stamina;
+        speed * weights.speed +
+        strength * weights.strength +
+        stamina * weights.stamina;
       return Math.round(score);
     }
+
+    function pickOpponent(mode) {
+      if (mode === 'pro') {
+        return {
+          label: PRO_ARCHETYPES[proSelect.value].label,
+          ...PRO_ARCHETYPES[proSelect.value]
+        };
+      }
+
+      // Player mode: either saved profile or custom sliders
+      if (playerBSourceSelect?.value === 'saved') {
+        const sel = savedProfilesSelect?.value;
+        if (sel) {
+          const profiles = loadProfiles();
+          const found = profiles.find(p => p.id === sel);
+          if (found) {
+            return { label: found.name || 'Player B', speed: found.speed, strength: found.strength, stamina: found.stamina };
+          }
+        }
+      }
+
+      return { label: 'Player B', speed: Number(speedB.value), strength: Number(strengthB.value), stamina: Number(staminaB.value) };
+    }
+
+    function buildRecommendations(values) {
+      const entries = [
+        { k: 'Speed', v: values.speed, tips: [
+          '2x/week acceleration: 6–10 × 10–20m sprints, full rest.',
+          'Technique: tall posture, strong knee drive, aggressive first 3 steps.',
+          'Plyometrics: low-volume hops/bounds (quality > quantity).'
+        ]},
+        { k: 'Strength', v: values.strength, tips: [
+          '2x/week lower-body: squat/hinge + single-leg work (split squats).',
+          'Core + posterior chain: RDLs, hip thrusts, carries.',
+          'Progress slowly: add 2.5–5kg when reps are solid.'
+        ]},
+        { k: 'Stamina', v: values.stamina, tips: [
+          '1x/week intervals: 6–10 × 2 min hard / 2 min easy.',
+          '1x/week repeated sprints: 2–3 sets of 6 × 20m (short rest).',
+          'Match fitness: consistent minutes and controlled intensity increases.'
+        ]}
+      ];
+
+      entries.sort((a,b) => a.v - b.v);
+      const weakest = entries[0];
+      const second = entries[1];
+
+      return {
+        title: `Training focus: ${weakest.k}`,
+        bullets: [
+          `Your lowest attribute is <strong>${weakest.k}</strong>. Improve this first for the biggest overall jump.`,
+          ...weakest.tips.map(t => t),
+          `Secondary focus: <strong>${second.k}</strong> (keep it moving while you build ${weakest.k.toLowerCase()}).`
+        ]
+      };
+    }
+
+    function renderTransparency({ weights, conversions, a, b, scoreA, scoreB, mode }) {
+      if (!transparencyBox) return;
+      const lines = [];
+      lines.push(`Mode: <strong>${mode === 'pro' ? 'You vs Pro archetype' : 'Player A vs Player B'}</strong>`);
+      lines.push(`Weights used (position-based): speed ${Math.round(weights.speed*100)}%, strength ${Math.round(weights.strength*100)}%, stamina ${Math.round(weights.stamina*100)}%`);
+      if (conversions.length) {
+        lines.push('<div style="height:6px;"></div><strong>Conversions applied</strong>');
+        lines.push(`<ul style="margin:6px 0 0; padding-left:18px;">${conversions.map(c => `<li>${c}</li>`).join('')}</ul>`);
+      }
+      lines.push('<div style="height:6px;"></div><strong>Scores</strong>');
+      lines.push(`Player A: ${scoreA}/100 (speed ${a.speed}, strength ${a.strength}, stamina ${a.stamina})`);
+      lines.push(`Opponent: ${scoreB}/100 (speed ${b.speed}, strength ${b.strength}, stamina ${b.stamina})`);
+      transparencyBox.innerHTML = lines.join('<div style="height:4px;"></div>');
+    }
+
+    function renderCompareTable(a, b, scoreA, scoreB) {
+      const tbody = compareTable?.querySelector('tbody');
+      if (!tbody) return;
+      const rows = [
+        { label: 'Speed', a: a.speed, b: b.speed },
+        { label: 'Strength', a: a.strength, b: b.strength },
+        { label: 'Stamina', a: a.stamina, b: b.stamina },
+        { label: 'Overall score', a: scoreA, b: scoreB }
+      ];
+      tbody.innerHTML = rows.map(r => {
+        const delta = r.a - r.b;
+        const sign = delta > 0 ? '+' : '';
+        return `<tr>
+          <td>${r.label}</td>
+          <td>${r.a}</td>
+          <td>${r.b}</td>
+          <td>${sign}${delta}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function updateModeUI() {
+      const mode = modeSelect?.value || 'pro';
+      if (mode === 'pro') {
+        compareLabel.textContent = 'Compare against:';
+        proSelect.style.display = 'inline-block';
+        playerBSourceSelect.style.display = 'none';
+        playerBPanel.style.display = 'none';
+      } else {
+        compareLabel.textContent = 'Opponent:';
+        proSelect.style.display = 'none';
+        playerBSourceSelect.style.display = 'inline-block';
+        playerBPanel.style.display = 'block';
+      }
+    }
+    if (modeSelect) modeSelect.addEventListener('change', () => { updateModeUI(); calculateAndRender(); });
+    if (playerBSourceSelect) playerBSourceSelect.addEventListener('change', () => { calculateAndRender(); });
 
     function getCategory(score) {
       if (score >= 85) return 'Elite physical profile benchmark';
@@ -689,6 +1169,7 @@
 
     // Chart.js setup
     const ctx = document.getElementById('comparisonChart').getContext('2d');
+    const diffCtx = document.getElementById('differenceChart').getContext('2d');
 
     let comparisonChart = new Chart(ctx, {
       type: 'radar',
@@ -749,34 +1230,112 @@
       }
     });
 
-    function updateChart(userValues) {
-      const pro = PRO_ARCHETYPES[proSelect.value];
+    let differenceChart = new Chart(diffCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Speed', 'Strength', 'Stamina'],
+        datasets: [
+          {
+            label: 'A − B',
+            data: [0, 0, 0],
+            backgroundColor: [
+              'rgba(0,200,150,0.55)',
+              'rgba(0,200,150,0.55)',
+              'rgba(0,200,150,0.55)'
+            ],
+            borderColor: 'rgba(255,255,255,0.15)',
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: { ticks: { color: '#e5e7f4', font: { size: 11 } }, grid: { color: 'rgba(148,163,184,0.12)' } },
+          y: {
+            min: -100,
+            max: 100,
+            ticks: { color: '#9ca3c7', font: { size: 10 }, stepSize: 50 },
+            grid: { color: 'rgba(148,163,184,0.12)' }
+          }
+        }
+      }
+    });
 
-      comparisonChart.data.datasets[0].data = userValues;
-      comparisonChart.data.datasets[1].data = [
-        pro.speed,
-        pro.strength,
-        pro.stamina
-      ];
-      comparisonChart.data.datasets[1].label = pro.label;
+    function updateCharts(a, b) {
+      comparisonChart.data.datasets[0].data = [a.speed, a.strength, a.stamina];
+      comparisonChart.data.datasets[0].label = 'Player A';
 
+      comparisonChart.data.datasets[1].data = [b.speed, b.strength, b.stamina];
+      comparisonChart.data.datasets[1].label = b.label || 'Opponent';
       comparisonChart.update();
+
+      const diffs = [a.speed - b.speed, a.strength - b.strength, a.stamina - b.stamina];
+      differenceChart.data.datasets[0].data = diffs;
+      differenceChart.data.datasets[0].backgroundColor = diffs.map(d => d >= 0 ? 'rgba(0,200,150,0.55)' : 'rgba(230,0,38,0.45)');
+      differenceChart.update();
     }
 
     function calculateAndRender() {
-      const speed = Number(speedInput.value);
-      const strength = Number(strengthInput.value);
-      const stamina = Number(staminaInput.value);
+      validateInputs();
+
+      const weights = getActiveWeights();
+      renderWeights(weights);
+
       const position = positionSelect.value;
+      const mode = modeSelect?.value || 'pro';
 
-      const score = computeScore(speed, strength, stamina);
+      const conversions = [];
+      // Note: conversions happen live; we only report what was provided.
+      if (sprintTimeInput?.value) conversions.push(`Sprint: ${sprintDistanceSelect.value}m in ${sprintTimeInput.value}s → speed ${speedInput.value}/100 (${levelSelect.value}, ${sexSelect.value})`);
+      if (squat1rmInput?.value && bodyweightInput?.value) {
+        const ratio = (parseFloat(squat1rmInput.value) / parseFloat(bodyweightInput.value));
+        if (!isNaN(ratio)) conversions.push(`Strength: squat ratio ${ratio.toFixed(2)}x → strength ${strengthInput.value}/100 (${levelSelect.value}, ${sexSelect.value})`);
+      }
+      if (yoyoDistanceInput?.value) conversions.push(`Stamina: Yo-Yo distance ${yoyoDistanceInput.value}m → stamina ${staminaInput.value}/100 (${levelSelect.value}, ${sexSelect.value})`);
 
-      scoreMain.textContent = isNaN(score) ? '– / 100' : `${score} / 100`;
-      scoreCategory.textContent = getCategory(score);
-      scoreTagline.textContent = getTagline(score, position);
-      scorePill.style.display = isNaN(score) ? 'none' : 'inline-flex';
+      const a = {
+        speed: Number(speedInput.value),
+        strength: Number(strengthInput.value),
+        stamina: Number(staminaInput.value)
+      };
 
-      updateChart([speed, strength, stamina]);
+      const opp = pickOpponent(mode);
+      const b = {
+        label: opp.label,
+        speed: Number(opp.speed),
+        strength: Number(opp.strength),
+        stamina: Number(opp.stamina)
+      };
+
+      const scoreA = computeScore(a.speed, a.strength, a.stamina, weights);
+      const scoreB = computeScore(b.speed, b.strength, b.stamina, weights);
+
+      const lead = scoreA - scoreB;
+      const headline = `${scoreA} / 100`;
+      const winnerText = mode === 'pro'
+        ? (lead >= 0 ? `You’re matching/exceeding this archetype on physical score by ${lead} points.` : `This archetype is ahead by ${Math.abs(lead)} points.`)
+        : (lead >= 0 ? `Player A leads by ${lead} points.` : `Player B leads by ${Math.abs(lead)} points.`);
+
+      scoreMain.textContent = isNaN(scoreA) ? '– / 100' : headline;
+      scoreCategory.textContent = getCategory(scoreA);
+      scoreTagline.textContent = `${getTagline(scoreA, position)} ${winnerText}`;
+      scorePill.style.display = isNaN(scoreA) ? 'none' : 'inline-flex';
+
+      updateCharts(a, b);
+      renderCompareTable(a, b, scoreA, scoreB);
+
+      const rec = buildRecommendations(a);
+      if (recommendationsBox) {
+        recommendationsBox.style.display = 'block';
+        recommendationsBox.innerHTML = `<strong style="color: var(--text-main); font-size: 12px;">${rec.title}</strong><ul style="margin: 8px 0 0; padding-left: 18px;">${rec.bullets.map(b => `<li>${b}</li>`).join('')}</ul>`;
+      }
+
+      renderTransparency({ weights, conversions, a, b, scoreA, scoreB, mode });
     }
 
     calculateBtn.addEventListener('click', calculateAndRender);
@@ -786,19 +1345,187 @@
       strengthInput.value = 65;
       staminaInput.value = 75;
       positionSelect.value = 'generic';
+      if (sprintDistanceSelect) sprintDistanceSelect.value = '50';
+      if (sprintTimeInput) sprintTimeInput.value = '';
+      if (squat1rmInput) squat1rmInput.value = '';
+      if (bodyweightInput) bodyweightInput.value = '';
+      if (yoyoDistanceInput) yoyoDistanceInput.value = '';
       updateSliderLabels();
       calculateAndRender();
     });
 
     proSelect.addEventListener('change', () => {
-      const speed = Number(speedInput.value);
-      const strength = Number(strengthInput.value);
-      const stamina = Number(staminaInput.value);
-      updateChart([speed, strength, stamina]);
+      calculateAndRender();
     });
 
+    if (speedB) speedB.addEventListener('input', calculateAndRender);
+    if (strengthB) strengthB.addEventListener('input', calculateAndRender);
+    if (staminaB) staminaB.addEventListener('input', calculateAndRender);
+
+    positionSelect.addEventListener('change', () => {
+      renderWeights(getActiveWeights());
+      calculateAndRender();
+    });
+
+    // Profiles (localStorage)
+    const PROFILE_STORAGE_KEY = 'footballPhysicalProfiles.v1';
+
+    function loadProfiles() {
+      try {
+        const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveProfiles(profiles) {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profiles));
+    }
+
+    function refreshProfilesUI() {
+      if (!savedProfilesSelect) return;
+      const profiles = loadProfiles();
+      savedProfilesSelect.innerHTML = '';
+      if (!profiles.length) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'No saved profiles yet';
+        savedProfilesSelect.appendChild(opt);
+        return;
+      }
+      for (const p of profiles) {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.name || 'Unnamed'} (S ${p.speed} / Str ${p.strength} / Sta ${p.stamina})`;
+        savedProfilesSelect.appendChild(opt);
+      }
+    }
+
+    function makeId() {
+      return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    }
+
+    if (saveProfileBtn) {
+      saveProfileBtn.addEventListener('click', () => {
+        const profiles = loadProfiles();
+        const name = (profileNameInput?.value || '').trim() || `Profile ${profiles.length + 1}`;
+        profiles.unshift({
+          id: makeId(),
+          name,
+          createdAt: new Date().toISOString(),
+          speed: Number(speedInput.value),
+          strength: Number(strengthInput.value),
+          stamina: Number(staminaInput.value)
+        });
+        saveProfiles(profiles.slice(0, 30));
+        refreshProfilesUI();
+        if (playerBSourceSelect) playerBSourceSelect.value = 'saved';
+        calculateAndRender();
+      });
+    }
+
+    if (loadProfileBtn) {
+      loadProfileBtn.addEventListener('click', () => {
+        if (playerBSourceSelect) playerBSourceSelect.value = 'saved';
+        calculateAndRender();
+      });
+    }
+
+    // Result card download (simple canvas)
+    function downloadResultCard() {
+      const weights = getActiveWeights();
+      const mode = modeSelect?.value || 'pro';
+      const a = { speed: Number(speedInput.value), strength: Number(strengthInput.value), stamina: Number(staminaInput.value) };
+      const bPick = pickOpponent(mode);
+      const b = { label: bPick.label, speed: Number(bPick.speed), strength: Number(bPick.strength), stamina: Number(bPick.stamina) };
+      const scoreA = computeScore(a.speed, a.strength, a.stamina, weights);
+      const scoreB = computeScore(b.speed, b.strength, b.stamina, weights);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 1100;
+      canvas.height = 620;
+      const c = canvas.getContext('2d');
+
+      // Background
+      c.fillStyle = '#050810';
+      c.fillRect(0, 0, canvas.width, canvas.height);
+      c.fillStyle = 'rgba(230,0,38,0.18)';
+      c.fillRect(0, 0, canvas.width, 120);
+      c.fillStyle = 'rgba(255,255,255,0.06)';
+      c.fillRect(60, 150, canvas.width - 120, 410);
+
+      // Title
+      c.fillStyle = '#f5f5f7';
+      c.font = '700 34px system-ui, -apple-system, sans-serif';
+      c.fillText('Football Physical Profile Lab', 60, 70);
+      c.fillStyle = '#a0a4b8';
+      c.font = '500 16px system-ui, -apple-system, sans-serif';
+      c.fillText(`${mode === 'pro' ? 'You vs Pro archetype' : 'Player A vs Player B'} · position weights: ${positionSelect.value}`, 60, 100);
+
+      // Scores
+      c.fillStyle = '#00c896';
+      c.font = '800 64px system-ui, -apple-system, sans-serif';
+      c.fillText(`${scoreA}`, 90, 240);
+      c.fillStyle = '#a0a4b8';
+      c.font = '600 18px system-ui, -apple-system, sans-serif';
+      c.fillText('Player A score', 90, 270);
+
+      c.fillStyle = '#e60026';
+      c.font = '800 64px system-ui, -apple-system, sans-serif';
+      c.fillText(`${scoreB}`, 330, 240);
+      c.fillStyle = '#a0a4b8';
+      c.font = '600 18px system-ui, -apple-system, sans-serif';
+      c.fillText('Opponent score', 330, 270);
+
+      // Bars helper
+      function bar(x, y, label, aVal, bVal) {
+        const w = 520;
+        const h = 14;
+        c.fillStyle = '#a0a4b8';
+        c.font = '600 16px system-ui, -apple-system, sans-serif';
+        c.fillText(label, x, y - 10);
+
+        c.fillStyle = 'rgba(255,255,255,0.12)';
+        c.fillRect(x, y, w, h);
+        c.fillRect(x, y + 22, w, h);
+
+        c.fillStyle = 'rgba(0,200,150,0.85)';
+        c.fillRect(x, y, (aVal / 100) * w, h);
+        c.fillStyle = 'rgba(230,0,38,0.75)';
+        c.fillRect(x, y + 22, (bVal / 100) * w, h);
+
+        c.fillStyle = '#f5f5f7';
+        c.font = '600 14px system-ui, -apple-system, sans-serif';
+        c.fillText(`A: ${aVal}`, x + w + 16, y + 12);
+        c.fillText(`B: ${bVal}`, x + w + 16, y + 34);
+      }
+
+      bar(90, 330, 'Speed', a.speed, b.speed);
+      bar(90, 400, 'Strength', a.strength, b.strength);
+      bar(90, 470, 'Stamina', a.stamina, b.stamina);
+
+      // Footer
+      c.fillStyle = '#a0a4b8';
+      c.font = '500 13px system-ui, -apple-system, sans-serif';
+      c.fillText('This score is physical-only (speed, strength, stamina). Use it to structure debates—not to replace watching the game.', 60, 595);
+
+      const link = document.createElement('a');
+      link.download = 'football-physical-profile.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    if (downloadCardBtn) downloadCardBtn.addEventListener('click', downloadResultCard);
+
     // Initialize
+    refreshProfilesUI();
+    updateModeUI();
     updateSliderLabels();
+    updatePlayerBLabels();
+    renderWeights(getActiveWeights());
+    validateInputs();
     calculateAndRender();
   </script>
 </body>
