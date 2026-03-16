@@ -522,14 +522,18 @@
 
         <div class="field-group">
           <div class="field-label-row">
-            <label class="field-label" for="squat1rm">1RM back squat and bodyweight</label>
-            <span class="field-hint">Optional: converts your strength ratio into the 0–100 strength score above</span>
+            <label class="field-label" for="pushups60">Push-ups test (optional)</label>
+            <span class="field-hint">Enter reps → converts into the 0–100 strength score above</span>
           </div>
-          <input type="number" id="squat1rm" min="20" max="300" step="1" placeholder="1RM squat (kg), e.g. 140" />
-          <div style="height: 6px;"></div>
-          <input type="number" id="bodyweight" min="30" max="150" step="0.1" placeholder="Bodyweight (kg), e.g. 75" />
+          <div class="grid-2">
+            <select id="pushupProtocol">
+              <option value="60s" selected>Push-ups in 60 seconds</option>
+              <option value="max">Max push-ups (no time)</option>
+            </select>
+            <input type="number" id="pushups60" min="0" max="200" step="1" placeholder="Reps, e.g. 35" />
+          </div>
           <div class="range-value">
-            Benchmarks (1RM ÷ bodyweight): 2.0x+ ≈ elite lower-body strength · 1.5x ≈ strong · 1.0x ≈ average trained.
+            Tip: keep strict form. If you’re unsure, use “60 seconds” (most school tests).
           </div>
         </div>
 
@@ -699,8 +703,8 @@
 
     const sprintDistanceSelect = document.getElementById('sprintDistance');
     const sprintTimeInput = document.getElementById('sprintTime');
-    const squat1rmInput = document.getElementById('squat1rm');
-    const bodyweightInput = document.getElementById('bodyweight');
+    const pushupProtocolSelect = document.getElementById('pushupProtocol');
+    const pushupsInput = document.getElementById('pushups60');
     const yoyoDistanceInput = document.getElementById('yoyoDistance');
 
     const levelSelect = document.getElementById('level');
@@ -837,11 +841,11 @@
         if (dist === 50 && (t < 5.0 || t > 10.0)) msgs.push('50m time looks unusual. Typical range is roughly 5.7s–8.5s.');
       }
 
-      const oneRm = parseFloat(squat1rmInput?.value);
-      const bw = parseFloat(bodyweightInput?.value);
-      if (!isNaN(oneRm) && !isNaN(bw) && bw > 0) {
-        const ratio = oneRm / bw;
-        if (ratio < 0.5 || ratio > 3.0) msgs.push('Squat ratio looks unusual (1RM ÷ bodyweight). Double-check units (kg) and numbers.');
+      const pushups = parseFloat(pushupsInput?.value);
+      if (!isNaN(pushups)) {
+        const protocol = pushupProtocolSelect?.value || '60s';
+        const upper = protocol === '60s' ? 90 : 140;
+        if (pushups < 0 || pushups > upper) msgs.push('Push-up reps look unusual. Double-check your number and the selected protocol.');
       }
 
       const yoyo = parseFloat(yoyoDistanceInput?.value);
@@ -852,8 +856,8 @@
 
     if (sprintTimeInput) sprintTimeInput.addEventListener('input', validateInputs);
     if (sprintDistanceSelect) sprintDistanceSelect.addEventListener('change', validateInputs);
-    if (squat1rmInput) squat1rmInput.addEventListener('input', validateInputs);
-    if (bodyweightInput) bodyweightInput.addEventListener('input', validateInputs);
+    if (pushupsInput) pushupsInput.addEventListener('input', validateInputs);
+    if (pushupProtocolSelect) pushupProtocolSelect.addEventListener('change', validateInputs);
     if (yoyoDistanceInput) yoyoDistanceInput.addEventListener('input', validateInputs);
 
     // Test conversion helpers (benchmarks vary by context).
@@ -926,56 +930,58 @@
     if (levelSelect) levelSelect.addEventListener('change', () => { handleSprintConversion(); handleStaminaConversion(); handleStrengthConversion(); });
     if (sexSelect) sexSelect.addEventListener('change', () => { handleSprintConversion(); handleStaminaConversion(); handleStrengthConversion(); });
 
-    // Map squat 1RM / bodyweight ratio to 0–100 strength score.
-    // Example mapping:
-    // - ratio 0.8x -> 0 (relatively weak for trained players)
-    // - ratio 2.0x -> 100 (elite lower-body strength)
-    function strengthScoreFromSquatRatio(ratio) {
-      // Adjust for context very lightly. (Better: separate benchmarks by sex/level later.)
-      const ctx = getContext();
-      const lowBase = 0.8;
-      const highBase = 2.0;
+    // Map push-ups to 0–100 strength score (school-friendly).
+    // Uses "push-ups in 60 seconds" by default (common PE test),
+    // or "max push-ups" if you choose that protocol.
+    function getPushupBenchmarks(protocol, ctx) {
+      // Benchmarks are rough and intentionally conservative.
+      // Values are [LOW, HIGH] reps where:
+      // - LOW -> 0
+      // - HIGH -> 100
+      const base = protocol === 'max'
+        ? { low: 10, high: 80 }
+        : { low: 8, high: 55 }; // 60 seconds
 
       const levelAdj = {
-        youth: -0.05,
-        amateur: 0.0,
-        academy: 0.05,
-        pro: 0.12
-      }[ctx.level] ?? 0.0;
+        youth: { low: -2, high: -6 },
+        amateur: { low: 0, high: 0 },
+        academy: { low: 2, high: 6 },
+        pro: { low: 4, high: 10 }
+      }[ctx.level] ?? { low: 0, high: 0 };
 
       const sexAdj = {
-        any: 0.0,
-        male: 0.05,
-        female: -0.05
-      }[ctx.sex] ?? 0.0;
+        any: { low: 0, high: 0 },
+        male: { low: 1, high: 3 },
+        female: { low: -1, high: -3 }
+      }[ctx.sex] ?? { low: 0, high: 0 };
 
-      const LOW_RATIO = lowBase + levelAdj + sexAdj;
-      const HIGH_RATIO = highBase + levelAdj + sexAdj;
+      return {
+        low: Math.max(0, base.low + levelAdj.low + sexAdj.low),
+        high: Math.max(5, base.high + levelAdj.high + sexAdj.high)
+      };
+    }
 
-      if (isNaN(ratio) || ratio <= 0) return null;
-
-      const r = Math.max(LOW_RATIO, Math.min(HIGH_RATIO, ratio));
-      const fraction = (r - LOW_RATIO) / (HIGH_RATIO - LOW_RATIO);
+    function strengthScoreFromPushups(reps, protocol, ctx) {
+      if (isNaN(reps) || reps < 0) return null;
+      const { low, high } = getPushupBenchmarks(protocol, ctx);
+      const r = clamp(reps, low, high);
+      const fraction = (r - low) / (high - low);
       const rawScore = fraction * 100;
-
       return Math.round(Math.max(0, Math.min(100, rawScore)));
     }
 
-    // When the user enters 1RM squat and bodyweight, convert to strength score.
     function handleStrengthConversion() {
-      const oneRm = parseFloat(squat1rmInput?.value);
-      const bw = parseFloat(bodyweightInput?.value);
-      if (!isNaN(oneRm) && !isNaN(bw) && bw > 0) {
-        const ratio = oneRm / bw;
-        const converted = strengthScoreFromSquatRatio(ratio);
-        if (converted !== null) {
-          strengthInput.value = converted;
-          updateSliderLabels();
-        }
+      const ctx = getContext();
+      const protocol = pushupProtocolSelect?.value || '60s';
+      const reps = parseFloat(pushupsInput?.value);
+      const converted = strengthScoreFromPushups(reps, protocol, ctx);
+      if (converted !== null) {
+        strengthInput.value = converted;
+        updateSliderLabels();
       }
     }
-    if (squat1rmInput) squat1rmInput.addEventListener('input', handleStrengthConversion);
-    if (bodyweightInput) bodyweightInput.addEventListener('input', handleStrengthConversion);
+    if (pushupsInput) pushupsInput.addEventListener('input', handleStrengthConversion);
+    if (pushupProtocolSelect) pushupProtocolSelect.addEventListener('change', handleStrengthConversion);
 
     // Map Yo-Yo test total distance (m) to 0–100 stamina score.
     // Example mapping (for youth / amateur context):
@@ -1292,10 +1298,7 @@
       const conversions = [];
       // Note: conversions happen live; we only report what was provided.
       if (sprintTimeInput?.value) conversions.push(`Sprint: ${sprintDistanceSelect.value}m in ${sprintTimeInput.value}s → speed ${speedInput.value}/100 (${levelSelect.value}, ${sexSelect.value})`);
-      if (squat1rmInput?.value && bodyweightInput?.value) {
-        const ratio = (parseFloat(squat1rmInput.value) / parseFloat(bodyweightInput.value));
-        if (!isNaN(ratio)) conversions.push(`Strength: squat ratio ${ratio.toFixed(2)}x → strength ${strengthInput.value}/100 (${levelSelect.value}, ${sexSelect.value})`);
-      }
+      if (pushupsInput?.value) conversions.push(`Strength: push-ups (${pushupProtocolSelect.value}) ${pushupsInput.value} reps → strength ${strengthInput.value}/100 (${levelSelect.value}, ${sexSelect.value})`);
       if (yoyoDistanceInput?.value) conversions.push(`Stamina: Yo-Yo distance ${yoyoDistanceInput.value}m → stamina ${staminaInput.value}/100 (${levelSelect.value}, ${sexSelect.value})`);
 
       const a = {
@@ -1347,8 +1350,8 @@
       positionSelect.value = 'generic';
       if (sprintDistanceSelect) sprintDistanceSelect.value = '50';
       if (sprintTimeInput) sprintTimeInput.value = '';
-      if (squat1rmInput) squat1rmInput.value = '';
-      if (bodyweightInput) bodyweightInput.value = '';
+      if (pushupProtocolSelect) pushupProtocolSelect.value = '60s';
+      if (pushupsInput) pushupsInput.value = '';
       if (yoyoDistanceInput) yoyoDistanceInput.value = '';
       updateSliderLabels();
       calculateAndRender();
