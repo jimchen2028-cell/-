@@ -240,6 +240,106 @@
       font-size: 11px;
     }
 
+    .profile-card {
+      margin-top: 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: linear-gradient(145deg, rgba(255,255,255,0.045), rgba(0,0,0,0.55));
+      box-shadow: 0 18px 38px rgba(0,0,0,0.55);
+      padding: 14px 14px 12px;
+    }
+
+    .profile-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .profile-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .profile-card-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    .profile-card-score {
+      text-align: right;
+      flex: 0 0 auto;
+    }
+
+    .profile-card-score .big {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .profile-card-score .small {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 520px) {
+      .profile-grid {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
+    }
+
+    .metric-tile {
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.20);
+      padding: 10px 10px 9px;
+    }
+
+    .metric-tile .k {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: baseline;
+    }
+
+    .metric-tile .v {
+      margin-top: 6px;
+      font-size: 18px;
+      font-weight: 750;
+      color: var(--text-main);
+      letter-spacing: 0.01em;
+    }
+
+    .metric-tile .hint {
+      margin-top: 4px;
+      font-size: 10px;
+      color: rgba(160,164,184,0.9);
+      line-height: 1.35;
+    }
+
+    .profile-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
     .pill-button {
       border-radius: 999px;
       padding: 8px 12px;
@@ -778,6 +878,28 @@
           <canvas id="differenceChart"></canvas>
         </div>
 
+        <div id="playerACardWrap" class="profile-card" style="display:none;">
+          <div class="profile-card-header">
+            <div>
+              <div class="profile-card-title">Player A profile card</div>
+              <div class="profile-card-sub" id="playerACardSub">Enter at least one test (sprint / push-ups / Yo-Yo) to generate your card.</div>
+            </div>
+            <div class="profile-card-score">
+              <div class="big" id="playerACardScore">–</div>
+              <div class="small">/100 physical score</div>
+            </div>
+          </div>
+
+          <div class="chips" id="playerACardBadges"></div>
+
+          <div class="profile-grid" id="playerACardGrid"></div>
+
+          <div class="profile-actions">
+            <button class="pill-button" id="downloadPlayerACardBtn" type="button">Download Player A card</button>
+            <div class="mini">Only generated for the person who entered test results (Player A).</div>
+          </div>
+        </div>
+
         <table class="table" id="compareTable">
           <thead>
             <tr>
@@ -864,6 +986,13 @@
     const compareTable = document.getElementById('compareTable');
     const recommendationsBox = document.getElementById('recommendations');
     const transparencyBox = document.getElementById('transparencyText');
+
+    const playerACardWrap = document.getElementById('playerACardWrap');
+    const playerACardSub = document.getElementById('playerACardSub');
+    const playerACardScore = document.getElementById('playerACardScore');
+    const playerACardBadges = document.getElementById('playerACardBadges');
+    const playerACardGrid = document.getElementById('playerACardGrid');
+    const downloadPlayerACardBtn = document.getElementById('downloadPlayerACardBtn');
 
     const profileNameInput = document.getElementById('profileName');
     const saveProfileBtn = document.getElementById('saveProfileBtn');
@@ -1458,7 +1587,164 @@
       }
 
       renderTransparency({ weights, conversions, a, b, scoreA, scoreB, mode });
+
+      // Player A profile card: only show if Player A entered at least one test.
+      const hasTest =
+        Boolean(sprintTimeInput?.value) ||
+        Boolean(pushupsInput?.value) ||
+        Boolean(yoyoDistanceInput?.value);
+
+      if (playerACardWrap) {
+        if (!hasTest) {
+          playerACardWrap.style.display = 'none';
+        } else {
+          playerACardWrap.style.display = 'block';
+
+          if (playerACardScore) playerACardScore.textContent = `${scoreA}`;
+
+          const posLabel = {
+            generic: 'All positions',
+            winger: 'Winger / Wide Forward',
+            midfielder: 'Box-to-Box Midfielder',
+            defender: 'Centre-Back / Full-Back',
+            striker: 'Striker / Target Man'
+          }[positionSelect.value] || 'All positions';
+
+          if (playerACardSub) {
+            playerACardSub.textContent = `Position: ${posLabel} · Context: ${levelSelect.value} · ${sexSelect.value}`;
+          }
+
+          if (playerACardBadges) {
+            playerACardBadges.innerHTML = `
+              <span class="chip highlight">Speed ${a.speed}</span>
+              <span class="chip">Strength ${a.strength}</span>
+              <span class="chip">Stamina ${a.stamina}</span>
+              <span class="chip">Weights ${Math.round(weights.speed*100)}/${Math.round(weights.strength*100)}/${Math.round(weights.stamina*100)}</span>
+            `;
+          }
+
+          const sprintLine = sprintTimeInput?.value
+            ? `${sprintDistanceSelect.value}m: ${sprintTimeInput.value}s`
+            : 'Not provided';
+          const pushLine = pushupsInput?.value
+            ? `${pushupsInput.value} reps (${pushupProtocolSelect.value})`
+            : 'Not provided';
+          const yoyoLine = yoyoDistanceInput?.value
+            ? `${yoyoDistanceInput.value} m`
+            : 'Not provided';
+
+          if (playerACardGrid) {
+            playerACardGrid.innerHTML = `
+              <div class="metric-tile">
+                <div class="k"><span>Speed ⚡</span><span>${a.speed}/100</span></div>
+                <div class="v">${sprintLine}</div>
+                <div class="hint">Sprint test → converted to speed score.</div>
+              </div>
+              <div class="metric-tile">
+                <div class="k"><span>Strength 🛡️</span><span>${a.strength}/100</span></div>
+                <div class="v">${pushLine}</div>
+                <div class="hint">Push-ups → converted to strength score.</div>
+              </div>
+              <div class="metric-tile">
+                <div class="k"><span>Stamina 🫁</span><span>${a.stamina}/100</span></div>
+                <div class="v">${yoyoLine}</div>
+                <div class="hint">Yo-Yo distance → converted to stamina score.</div>
+              </div>
+            `;
+          }
+        }
+      }
     }
+
+    function downloadPlayerACard() {
+      const hasTest =
+        Boolean(sprintTimeInput?.value) ||
+        Boolean(pushupsInput?.value) ||
+        Boolean(yoyoDistanceInput?.value);
+      if (!hasTest) return;
+
+      const weights = getActiveWeights();
+      const a = { speed: Number(speedInput.value), strength: Number(strengthInput.value), stamina: Number(staminaInput.value) };
+      const scoreA = computeScore(a.speed, a.strength, a.stamina, weights);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 1100;
+      canvas.height = 560;
+      const c = canvas.getContext('2d');
+
+      // Background (pitchy)
+      c.fillStyle = '#050810';
+      c.fillRect(0, 0, canvas.width, canvas.height);
+      c.fillStyle = 'rgba(255,255,255,0.05)';
+      for (let x = 60; x < canvas.width; x += 90) {
+        c.fillRect(x, 0, 1, canvas.height);
+      }
+      for (let y = 60; y < canvas.height; y += 90) {
+        c.fillRect(0, y, canvas.width, 1);
+      }
+      c.fillStyle = 'rgba(230,0,38,0.18)';
+      c.fillRect(0, 0, canvas.width, 120);
+
+      // Title
+      c.fillStyle = '#f5f5f7';
+      c.font = '800 36px system-ui, -apple-system, sans-serif';
+      c.fillText('Player A · Physical Profile', 60, 76);
+      c.fillStyle = '#a0a4b8';
+      c.font = '600 16px system-ui, -apple-system, sans-serif';
+      c.fillText(`Position: ${positionSelect.value} · Context: ${levelSelect.value} · ${sexSelect.value}`, 60, 108);
+
+      // Score
+      c.fillStyle = '#00c896';
+      c.font = '900 72px system-ui, -apple-system, sans-serif';
+      c.fillText(`${scoreA}`, 860, 92);
+      c.fillStyle = '#a0a4b8';
+      c.font = '600 14px system-ui, -apple-system, sans-serif';
+      c.fillText('/100', 1000, 92);
+
+      // Panels
+      function panel(x, y, w, h, title, score, line1, line2) {
+        c.fillStyle = 'rgba(255,255,255,0.06)';
+        c.fillRect(x, y, w, h);
+        c.strokeStyle = 'rgba(255,255,255,0.10)';
+        c.lineWidth = 1;
+        c.strokeRect(x, y, w, h);
+
+        c.fillStyle = '#f5f5f7';
+        c.font = '800 18px system-ui, -apple-system, sans-serif';
+        c.fillText(title, x + 18, y + 34);
+
+        c.fillStyle = '#a0a4b8';
+        c.font = '700 14px system-ui, -apple-system, sans-serif';
+        c.fillText(`${score}/100`, x + w - 90, y + 34);
+
+        c.fillStyle = '#f5f5f7';
+        c.font = '750 22px system-ui, -apple-system, sans-serif';
+        c.fillText(line1, x + 18, y + 74);
+
+        c.fillStyle = '#a0a4b8';
+        c.font = '600 14px system-ui, -apple-system, sans-serif';
+        c.fillText(line2, x + 18, y + 102);
+      }
+
+      const sprintLine = sprintTimeInput?.value ? `${sprintDistanceSelect.value}m in ${sprintTimeInput.value}s` : 'Not provided';
+      const pushLine = pushupsInput?.value ? `${pushupsInput.value} reps (${pushupProtocolSelect.value})` : 'Not provided';
+      const yoyoLine = yoyoDistanceInput?.value ? `${yoyoDistanceInput.value} m` : 'Not provided';
+
+      panel(60, 160, 980, 110, 'Speed ⚡', a.speed, sprintLine, 'Converted from sprint test');
+      panel(60, 290, 980, 110, 'Strength 🛡️', a.strength, pushLine, 'Converted from push-ups');
+      panel(60, 420, 980, 110, 'Stamina 🫁', a.stamina, yoyoLine, 'Converted from Yo-Yo distance');
+
+      c.fillStyle = '#a0a4b8';
+      c.font = '500 12px system-ui, -apple-system, sans-serif';
+      c.fillText(`Weights: speed ${Math.round(weights.speed*100)}% · strength ${Math.round(weights.strength*100)}% · stamina ${Math.round(weights.stamina*100)}%`, 60, 548);
+
+      const link = document.createElement('a');
+      link.download = 'player-a-physical-profile.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    if (downloadPlayerACardBtn) downloadPlayerACardBtn.addEventListener('click', downloadPlayerACard);
 
     calculateBtn.addEventListener('click', calculateAndRender);
 
