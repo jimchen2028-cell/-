@@ -878,6 +878,13 @@
           <canvas id="differenceChart"></canvas>
         </div>
 
+        <div class="chart-wrapper" style="height: 260px;">
+          <canvas id="triangleDiagram"></canvas>
+          <div class="mini" style="margin-top: 6px;">
+            Triangle analysis: the closer you are to a corner, the more that attribute dominates your profile.
+          </div>
+        </div>
+
         <div id="playerACardWrap" class="profile-card" style="display:none;">
           <div class="profile-card-header">
             <div>
@@ -1424,6 +1431,8 @@
     // Chart.js setup
     const ctx = document.getElementById('comparisonChart').getContext('2d');
     const diffCtx = document.getElementById('differenceChart').getContext('2d');
+    const triangleCanvas = document.getElementById('triangleDiagram');
+    const triangleCtx = triangleCanvas?.getContext?.('2d') || null;
 
     let comparisonChart = new Chart(ctx, {
       type: 'radar',
@@ -1532,6 +1541,137 @@
       differenceChart.data.datasets[0].data = diffs;
       differenceChart.data.datasets[0].backgroundColor = diffs.map(d => d >= 0 ? 'rgba(0,200,150,0.55)' : 'rgba(230,0,38,0.45)');
       differenceChart.update();
+
+      drawTriangleDiagram(a, b);
+    }
+
+    function drawTriangleDiagram(a, b) {
+      if (!triangleCtx || !triangleCanvas) return;
+
+      // Ensure canvas resolution matches CSS size for crisp lines
+      const dpr = window.devicePixelRatio || 1;
+      const rect = triangleCanvas.getBoundingClientRect();
+      const w = Math.max(200, rect.width);
+      const h = Math.max(200, rect.height);
+      triangleCanvas.width = Math.round(w * dpr);
+      triangleCanvas.height = Math.round(h * dpr);
+      triangleCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      triangleCtx.clearRect(0, 0, w, h);
+
+      const pad = 24;
+      const usableW = w - pad * 2;
+      const usableH = h - pad * 2;
+
+      // Equilateral triangle points (Speed top, Strength left, Stamina right)
+      const top = { x: pad + usableW / 2, y: pad + 6 };
+      const left = { x: pad + 6, y: pad + usableH - 10 };
+      const right = { x: pad + usableW - 6, y: pad + usableH - 10 };
+
+      // Background grid
+      triangleCtx.lineWidth = 1;
+      triangleCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+      triangleCtx.fillStyle = 'rgba(0,0,0,0)';
+
+      // Triangle outline
+      triangleCtx.beginPath();
+      triangleCtx.moveTo(top.x, top.y);
+      triangleCtx.lineTo(right.x, right.y);
+      triangleCtx.lineTo(left.x, left.y);
+      triangleCtx.closePath();
+      triangleCtx.stroke();
+
+      // Subdivision lines (20%, 40%, 60%, 80%)
+      const steps = [0.2, 0.4, 0.6, 0.8];
+      for (const t of steps) {
+        // Lines parallel to base (Speed fraction)
+        const p1 = {
+          x: top.x + (left.x - top.x) * t,
+          y: top.y + (left.y - top.y) * t
+        };
+        const p2 = {
+          x: top.x + (right.x - top.x) * t,
+          y: top.y + (right.y - top.y) * t
+        };
+        triangleCtx.beginPath();
+        triangleCtx.moveTo(p1.x, p1.y);
+        triangleCtx.lineTo(p2.x, p2.y);
+        triangleCtx.stroke();
+
+        // Lines parallel to right side (Strength fraction)
+        const q1 = {
+          x: left.x + (top.x - left.x) * t,
+          y: left.y + (top.y - left.y) * t
+        };
+        const q2 = {
+          x: left.x + (right.x - left.x) * t,
+          y: left.y + (right.y - left.y) * t
+        };
+        triangleCtx.beginPath();
+        triangleCtx.moveTo(q1.x, q1.y);
+        triangleCtx.lineTo(q2.x, q2.y);
+        triangleCtx.stroke();
+
+        // Lines parallel to left side (Stamina fraction)
+        const r1 = {
+          x: right.x + (top.x - right.x) * t,
+          y: right.y + (top.y - right.y) * t
+        };
+        const r2 = {
+          x: right.x + (left.x - right.x) * t,
+          y: right.y + (left.y - right.y) * t
+        };
+        triangleCtx.beginPath();
+        triangleCtx.moveTo(r1.x, r1.y);
+        triangleCtx.lineTo(r2.x, r2.y);
+        triangleCtx.stroke();
+      }
+
+      // Labels
+      triangleCtx.fillStyle = 'rgba(245,245,247,0.85)';
+      triangleCtx.font = '600 12px system-ui, -apple-system, sans-serif';
+      triangleCtx.textAlign = 'center';
+      triangleCtx.fillText('Speed', top.x, top.y - 6 + 0);
+      triangleCtx.textAlign = 'left';
+      triangleCtx.fillText('Strength', left.x - 2, left.y + 18);
+      triangleCtx.textAlign = 'right';
+      triangleCtx.fillText('Stamina', right.x + 2, right.y + 18);
+
+      // Convert [speed,strength,stamina] into barycentric coordinates
+      function pointFor(values) {
+        const s = Math.max(0, values.speed);
+        const st = Math.max(0, values.strength);
+        const sa = Math.max(0, values.stamina);
+        const sum = s + st + sa;
+        const aS = sum > 0 ? s / sum : 1 / 3;
+        const aSt = sum > 0 ? st / sum : 1 / 3;
+        const aSa = sum > 0 ? sa / sum : 1 / 3;
+
+        return {
+          x: top.x * aS + left.x * aSt + right.x * aSa,
+          y: top.y * aS + left.y * aSt + right.y * aSa
+        };
+      }
+
+      function drawMarker(p, color, label) {
+        triangleCtx.beginPath();
+        triangleCtx.fillStyle = color;
+        triangleCtx.arc(p.x, p.y, 5.5, 0, Math.PI * 2);
+        triangleCtx.fill();
+        triangleCtx.strokeStyle = 'rgba(0,0,0,0.35)';
+        triangleCtx.lineWidth = 2;
+        triangleCtx.stroke();
+
+        triangleCtx.fillStyle = 'rgba(245,245,247,0.9)';
+        triangleCtx.font = '700 11px system-ui, -apple-system, sans-serif';
+        triangleCtx.textAlign = 'left';
+        triangleCtx.fillText(label, p.x + 10, p.y + 4);
+      }
+
+      const pA = pointFor(a);
+      const pB = pointFor(b);
+      drawMarker(pA, 'rgba(0,200,150,0.95)', 'A');
+      drawMarker(pB, 'rgba(230,0,38,0.85)', 'B');
     }
 
     function calculateAndRender() {
