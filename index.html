@@ -26,7 +26,22 @@
     body {
       margin: 0;
       padding: 0;
-      background: radial-gradient(circle at top, #181b2a 0, #050810 55%);
+      background:
+        radial-gradient(circle at top, rgba(24,27,42,1) 0, rgba(5,8,16,1) 55%),
+        repeating-linear-gradient(
+          90deg,
+          rgba(255,255,255,0.035) 0px,
+          rgba(255,255,255,0.035) 1px,
+          rgba(255,255,255,0) 1px,
+          rgba(255,255,255,0) 70px
+        ),
+        repeating-linear-gradient(
+          0deg,
+          rgba(255,255,255,0.03) 0px,
+          rgba(255,255,255,0.03) 1px,
+          rgba(255,255,255,0) 1px,
+          rgba(255,255,255,0) 70px
+        );
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
@@ -34,15 +49,54 @@
       justify-content: center;
     }
 
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 15% 25%, rgba(230,0,38,0.10), transparent 45%),
+        radial-gradient(circle at 80% 15%, rgba(0,200,150,0.10), transparent 45%),
+        radial-gradient(circle at 75% 80%, rgba(230,0,38,0.08), transparent 50%);
+      filter: blur(0px);
+      opacity: 0.95;
+    }
+
     .page {
       width: 100%;
       max-width: 1100px;
       padding: 24px 16px 40px;
       margin: 0 auto;
+      position: relative;
+      z-index: 1;
     }
 
     .header {
       margin-bottom: 20px;
+    }
+
+    .hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    @media (max-width: 740px) {
+      .hero {
+        flex-direction: column;
+      }
+    }
+
+    .hero-graphic {
+      flex: 0 0 auto;
+      width: 260px;
+      max-width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(0,0,0,0.55));
+      box-shadow: 0 22px 40px rgba(0,0,0,0.55);
+      padding: 14px;
     }
 
     .title {
@@ -288,6 +342,16 @@
       box-shadow: 0 10px 25px rgba(230,0,38,0.45);
     }
 
+    button.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 32px rgba(230,0,38,0.50);
+    }
+
+    button.primary:active {
+      transform: translateY(0px);
+      box-shadow: 0 10px 22px rgba(230,0,38,0.42);
+    }
+
     button.secondary {
       border-radius: 999px;
       padding: 9px 14px;
@@ -296,6 +360,20 @@
       border: 1px solid rgba(255,255,255,0.18);
       background: rgba(3,7,19,0.6);
       color: var(--text-muted);
+    }
+
+    button.secondary:hover, .pill-button:hover {
+      border-color: rgba(255,255,255,0.28);
+      background: rgba(3,7,19,0.72);
+    }
+
+    button.primary, button.secondary, .pill-button {
+      transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, border-color 120ms ease;
+    }
+
+    button:focus-visible, select:focus-visible, input:focus-visible {
+      outline: 2px solid rgba(0,200,150,0.55);
+      outline-offset: 2px;
     }
 
     .button-row small {
@@ -373,6 +451,10 @@
       position: relative;
       height: 220px;
       margin-bottom: 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(0,0,0,0.18);
+      padding: 10px;
     }
 
     .comparison-select {
@@ -417,14 +499,57 @@
 <body>
   <div class="page">
     <header class="header">
-      <div class="title">
-        Football Physical <span class="accent">Profile Lab</span>
+      <div class="hero">
+        <div>
+          <div class="title">
+            Football Physical <span class="accent">Profile Lab</span>
+          </div>
+          <p class="subtitle">
+            Input your speed, strength, and stamina to see your overall physical profile score and compare
+            yourself to pro-style archetypes (or your friends). Built for clean debates, clear visuals, and
+            real test conversions—without the “trust me bro”.
+          </p>
+        </div>
+
+        <div class="hero-graphic" aria-hidden="true">
+          <svg viewBox="0 0 320 220" width="100%" height="auto" role="img">
+            <defs>
+              <linearGradient id="g" x1="0" x2="1">
+                <stop offset="0" stop-color="rgba(230,0,38,0.55)"/>
+                <stop offset="1" stop-color="rgba(0,200,150,0.45)"/>
+              </linearGradient>
+            </defs>
+            <!-- Pitch -->
+            <rect x="10" y="10" width="300" height="200" rx="14" fill="rgba(0,0,0,0.18)" stroke="rgba(255,255,255,0.10)"/>
+            <rect x="22" y="22" width="276" height="176" rx="12" fill="rgba(0,0,0,0.10)" stroke="rgba(255,255,255,0.10)"/>
+            <line x1="160" y1="22" x2="160" y2="198" stroke="rgba(255,255,255,0.12)"/>
+            <circle cx="160" cy="110" r="26" fill="none" stroke="rgba(255,255,255,0.12)"/>
+            <circle cx="160" cy="110" r="2.5" fill="rgba(255,255,255,0.18)"/>
+            <rect x="22" y="70" width="42" height="80" rx="8" fill="none" stroke="rgba(255,255,255,0.10)"/>
+            <rect x="256" y="70" width="42" height="80" rx="8" fill="none" stroke="rgba(255,255,255,0.10)"/>
+
+            <!-- Silhouette -->
+            <path d="M145 158c10-8 20-12 30-11 10 1 19 7 24 15l-12 10c-3-6-8-9-13-10-7-1-14 2-20 7l-9-11z"
+              fill="rgba(255,255,255,0.14)"/>
+            <circle cx="205" cy="128" r="10" fill="rgba(255,255,255,0.14)"/>
+            <path d="M190 170c10-10 18-22 20-35l8 3c-2 18-12 32-24 44l-4-12z"
+              fill="rgba(255,255,255,0.12)"/>
+
+            <!-- Data bars -->
+            <rect x="34" y="30" width="110" height="10" rx="999" fill="rgba(255,255,255,0.10)"/>
+            <rect x="34" y="30" width="78" height="10" rx="999" fill="url(#g)"/>
+            <rect x="34" y="46" width="110" height="10" rx="999" fill="rgba(255,255,255,0.10)"/>
+            <rect x="34" y="46" width="62" height="10" rx="999" fill="url(#g)"/>
+            <rect x="34" y="62" width="110" height="10" rx="999" fill="rgba(255,255,255,0.10)"/>
+            <rect x="34" y="62" width="90" height="10" rx="999" fill="url(#g)"/>
+
+            <!-- Title -->
+            <text x="34" y="196" fill="rgba(245,245,247,0.72)" font-size="12" font-family="system-ui, -apple-system, sans-serif">
+              Clear inputs. Clear outputs.
+            </text>
+          </svg>
+        </div>
       </div>
-      <p class="subtitle">
-        Input your speed, strength, and stamina to see your overall physical profile score and compare
-        yourself to pro-style archetypes. Built from live match debates, stats arguments, and the brutal
-        reality of hitting your physical limit on the pitch.
-      </p>
     </header>
 
     <main class="layout">
@@ -483,7 +608,7 @@
 
         <div class="field-group">
           <div class="field-label-row">
-            <label class="field-label" for="speed">Speed</label>
+            <label class="field-label" for="speed">Speed ⚡</label>
             <span class="field-hint">0 = slowest in the squad · 100 = elite burst & top speed</span>
           </div>
           <input type="range" id="speed" min="0" max="100" value="70" />
@@ -513,7 +638,7 @@
 
         <div class="field-group">
           <div class="field-label-row">
-            <label class="field-label" for="strength">Strength</label>
+            <label class="field-label" for="strength">Strength 🛡️</label>
             <span class="field-hint">Ability to hold off, win duels, dominate contact</span>
           </div>
           <input type="range" id="strength" min="0" max="100" value="65" />
@@ -550,7 +675,7 @@
 
         <div class="field-group">
           <div class="field-label-row">
-            <label class="field-label" for="stamina">Stamina</label>
+            <label class="field-label" for="stamina">Stamina 🫁</label>
             <span class="field-hint">Engine, repeat sprints, late-game running</span>
           </div>
           <input type="range" id="stamina" min="0" max="100" value="75" />
@@ -653,11 +778,6 @@
           <canvas id="differenceChart"></canvas>
         </div>
 
-        <div class="row">
-          <button class="pill-button" id="downloadCardBtn" type="button">Download result card</button>
-          <div class="mini" id="downloadHint">Creates an image you can share (saved by your browser).</div>
-        </div>
-
         <table class="table" id="compareTable">
           <thead>
             <tr>
@@ -744,7 +864,6 @@
     const compareTable = document.getElementById('compareTable');
     const recommendationsBox = document.getElementById('recommendations');
     const transparencyBox = document.getElementById('transparencyText');
-    const downloadCardBtn = document.getElementById('downloadCardBtn');
 
     const profileNameInput = document.getElementById('profileName');
     const saveProfileBtn = document.getElementById('saveProfileBtn');
@@ -1435,92 +1554,6 @@
         calculateAndRender();
       });
     }
-
-    // Result card download (simple canvas)
-    function downloadResultCard() {
-      const weights = getActiveWeights();
-      const mode = modeSelect?.value || 'pro';
-      const a = { speed: Number(speedInput.value), strength: Number(strengthInput.value), stamina: Number(staminaInput.value) };
-      const bPick = pickOpponent(mode);
-      const b = { label: bPick.label, speed: Number(bPick.speed), strength: Number(bPick.strength), stamina: Number(bPick.stamina) };
-      const scoreA = computeScore(a.speed, a.strength, a.stamina, weights);
-      const scoreB = computeScore(b.speed, b.strength, b.stamina, weights);
-
-      const canvas = document.createElement('canvas');
-      canvas.width = 1100;
-      canvas.height = 620;
-      const c = canvas.getContext('2d');
-
-      // Background
-      c.fillStyle = '#050810';
-      c.fillRect(0, 0, canvas.width, canvas.height);
-      c.fillStyle = 'rgba(230,0,38,0.18)';
-      c.fillRect(0, 0, canvas.width, 120);
-      c.fillStyle = 'rgba(255,255,255,0.06)';
-      c.fillRect(60, 150, canvas.width - 120, 410);
-
-      // Title
-      c.fillStyle = '#f5f5f7';
-      c.font = '700 34px system-ui, -apple-system, sans-serif';
-      c.fillText('Football Physical Profile Lab', 60, 70);
-      c.fillStyle = '#a0a4b8';
-      c.font = '500 16px system-ui, -apple-system, sans-serif';
-      c.fillText(`${mode === 'pro' ? 'You vs Pro archetype' : 'Player A vs Player B'} · position weights: ${positionSelect.value}`, 60, 100);
-
-      // Scores
-      c.fillStyle = '#00c896';
-      c.font = '800 64px system-ui, -apple-system, sans-serif';
-      c.fillText(`${scoreA}`, 90, 240);
-      c.fillStyle = '#a0a4b8';
-      c.font = '600 18px system-ui, -apple-system, sans-serif';
-      c.fillText('Player A score', 90, 270);
-
-      c.fillStyle = '#e60026';
-      c.font = '800 64px system-ui, -apple-system, sans-serif';
-      c.fillText(`${scoreB}`, 330, 240);
-      c.fillStyle = '#a0a4b8';
-      c.font = '600 18px system-ui, -apple-system, sans-serif';
-      c.fillText('Opponent score', 330, 270);
-
-      // Bars helper
-      function bar(x, y, label, aVal, bVal) {
-        const w = 520;
-        const h = 14;
-        c.fillStyle = '#a0a4b8';
-        c.font = '600 16px system-ui, -apple-system, sans-serif';
-        c.fillText(label, x, y - 10);
-
-        c.fillStyle = 'rgba(255,255,255,0.12)';
-        c.fillRect(x, y, w, h);
-        c.fillRect(x, y + 22, w, h);
-
-        c.fillStyle = 'rgba(0,200,150,0.85)';
-        c.fillRect(x, y, (aVal / 100) * w, h);
-        c.fillStyle = 'rgba(230,0,38,0.75)';
-        c.fillRect(x, y + 22, (bVal / 100) * w, h);
-
-        c.fillStyle = '#f5f5f7';
-        c.font = '600 14px system-ui, -apple-system, sans-serif';
-        c.fillText(`A: ${aVal}`, x + w + 16, y + 12);
-        c.fillText(`B: ${bVal}`, x + w + 16, y + 34);
-      }
-
-      bar(90, 330, 'Speed', a.speed, b.speed);
-      bar(90, 400, 'Strength', a.strength, b.strength);
-      bar(90, 470, 'Stamina', a.stamina, b.stamina);
-
-      // Footer
-      c.fillStyle = '#a0a4b8';
-      c.font = '500 13px system-ui, -apple-system, sans-serif';
-      c.fillText('This score is physical-only (speed, strength, stamina). Use it to structure debates—not to replace watching the game.', 60, 595);
-
-      const link = document.createElement('a');
-      link.download = 'football-physical-profile.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    }
-
-    if (downloadCardBtn) downloadCardBtn.addEventListener('click', downloadResultCard);
 
     // Initialize
     refreshProfilesUI();
